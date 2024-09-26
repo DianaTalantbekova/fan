@@ -355,15 +355,17 @@ class _FavCollectionScreenState extends State<FavCollectionScreen> {
       bool selected,
       VoidCallback onTap,
       ) {
-    return GestureDetector(
-      onTap: onTap,
+    return AppButton(
+      onPressed: onTap,
       child: Container(
         alignment: Alignment.center,
         margin: EdgeInsets.symmetric(horizontal: 4.w),
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        padding: EdgeInsets.symmetric(horizontal: 12.w),
         decoration: BoxDecoration(
-          color: AppColors.red,
+          color: !selected ? AppColors.red : Colors.transparent,
           borderRadius: BorderRadius.circular(10.r),
+          border:
+          Border.all(color: selected ? AppColors.red : Colors.transparent),
         ),
         child: Text(
           text,

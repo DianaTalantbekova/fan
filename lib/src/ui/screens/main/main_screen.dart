@@ -20,6 +20,7 @@ import '../add_fan/add_fan_screen.dart';
 import '../add_fan/bloc/fan_bloc.dart';
 import '../add_to_cart/add_to_cart_screen.dart';
 import '../edit_fan/edit_fan_screen.dart';
+import 'bottom_detail_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -87,10 +88,11 @@ class _MainScreenState extends State<MainScreen> {
       print('Error toggling play/pause: $e');
     }
   }
+
   @override
   Widget build(BuildContext context) {
     bool _isBottomSheetShown = false;
-
+    print('LALALLA');
     return Scaffold(
       backgroundColor: AppColors.black,
       body: SafeArea(
@@ -131,7 +133,7 @@ class _MainScreenState extends State<MainScreen> {
               child: BlocBuilder<FanBloc, FanState>(
                 builder: (context, state) {
                   if (state is FanLoaded) {
-                    List<FanModel> fanItems = state.fans;
+                    List<FanModel> fanItems = state.fans.where((fan) => fan.isCart != true).toList();
 
                     if (expensive) {
                       fanItems.sort(
@@ -161,7 +163,7 @@ class _MainScreenState extends State<MainScreen> {
                               crossAxisCount: 2,
                               mainAxisSpacing: 8.h,
                               crossAxisSpacing: 10.w,
-                              childAspectRatio: 167.w / 254.h,
+                              childAspectRatio: 167.w / 262.h,
                             ),
                             itemBuilder: (BuildContext context, int index) {
                               FanModel fan = fanItems[index];
@@ -284,13 +286,15 @@ class _MainScreenState extends State<MainScreen> {
                                         children: [
                                           Expanded(
                                             child: AppButton(
-                                              onPressed: () => _togglePlayPause(index, fan),
+                                              onPressed: () =>
+                                                  _togglePlayPause(index, fan),
                                               child: Container(
                                                 alignment: Alignment.center,
                                                 height: 32.h,
                                                 decoration: BoxDecoration(
                                                   borderRadius:
-                                                      BorderRadius.circular(10.r),
+                                                      BorderRadius.circular(
+                                                          10.r),
                                                   color: AppColors.red,
                                                 ),
                                                 child: isPlaying &&
@@ -359,8 +363,12 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        shape: const CircleBorder(
+            side: BorderSide(
+              color: AppColors.red,
+            )),
+        backgroundColor: AppColors.red,
         heroTag: 'btn1',
-        backgroundColor: Colors.black,
         onPressed: () {
           Navigator.push(
             context,
@@ -391,8 +399,6 @@ class _MainScreenState extends State<MainScreen> {
 
   void _showBottomSheet(
       BuildContext context, FanModel fanModel, List<FanModel> fanModelList) {
-    bool _isBottomSheetShown = false;
-
     showModalBottomSheet(
       backgroundColor: AppColors.gray2C2C2E,
       context: context,
@@ -403,174 +409,11 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
       builder: (context) {
-        return Container(
-          height: 730.h,
-          padding: EdgeInsets.all(10.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20.r),
-                child: Image.file(
-                  File(fanModel.image!),
-                  width: double.infinity,
-                  height: 362.h,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Text(
-                fanModel.name,
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Text(
-                fanModel.description ?? 'No description',
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(height: 12.h),
-              Row(
-                children: [
-                  AppButton(
-                    onPressed: () {
-                      int index = fanModelList.indexOf(fanModel);
-                      _togglePlayPause(index, fanModel);
-                    },
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: 32.h,
-                      width: 102.w,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10.r),
-                        color: AppColors.red,
-                      ),
-                      child: isPlaying && currentPlayingIndex == fanModelList.indexOf(fanModel)
-                          ? SvgPicture.asset(
-                        Assets.svg.pause,
-                        fit: BoxFit.contain,
-                        width: 24.w,
-                        height: 24.h,
-                      )
-                          : SvgPicture.asset(
-                        Assets.svg.play,
-                        fit: BoxFit.contain,
-                        width: 24.w,
-                        height: 24.h,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 4.w),
-                  AppButton(
-                    onPressed: () {
-                      if (fanModel.isFavorite || fanModel.isCollection) {
-                        var dataBox = GetIt.I.get<Box<FanModel>>();
-                        var updatedModel = FanModel(
-                          name: fanModel.name,
-                          id: fanModel.id,
-                          image: fanModel.image,
-                          isFavorite: false,
-                          description: fanModel.description,
-                          isCollection: false,
-                          audioFile: fanModel.audioFile,
-                          keyCollection: null,
-                          addedDate: fanModel.addedDate,
-                        );
-
-                        dataBox.put(fanModel.id, updatedModel);
-                        setState(() {
-                          fanModel.isFavorite = false;
-                          fanModel.isCollection = false;
-                        });
-                      } else if (!fanModel.isCollection && !_isBottomSheetShown) {
-                        int index = fanModelList.indexOf(fanModel);
-                        _showAddToCollectionSheet(context, fanModelList, index);
-                        _isBottomSheetShown = true;
-                      }
-                    },
-                    child: Container(
-                      alignment: Alignment.center,
-                      width: 52.w,
-                      height: 32.h,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.r),
-                        color: AppColors.white.withOpacity(0.2),
-                      ),
-                      child: fanModel.isFavorite || fanModel.isCollection
-                          ? SvgPicture.asset(
-                        Assets.svg.starFilled,
-                        fit: BoxFit.contain,
-                        width: 24.w,
-                        height: 24.h,
-                      )
-                          : SvgPicture.asset(
-                        Assets.svg.star,
-                        fit: BoxFit.contain,
-                        width: 24.w,
-                        height: 24.h,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 4.w),
-                  AppButton(
-                    onPressed: () {
-                      _showMenuDialog(context, fanModel);
-                    },
-                    child: Container(
-                      alignment: Alignment.center,
-                      width: 52.w,
-                      height: 32.h,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.r),
-                        color: AppColors.white.withOpacity(0.2),
-                      ),
-                      child: SvgPicture.asset(
-                        Assets.svg.settings,
-                        fit: BoxFit.contain,
-                        width: 24.w,
-                        height: 24.h,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 10.h),
-              AppButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AddToCartScreen(fanModel: fanModel),
-                    ),
-                  );
-                },
-                child: Container(
-                  alignment: Alignment.center,
-                  height: 52.h,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10.r),
-                    color: AppColors.red,
-                  ),
-                  child: Text(
-                    'Add to cart',
-                    style: AppStyles.helper2,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
+        return BottomDetailScreen(fanModel: fanModel);
       },
     );
   }
+
   void _showAddToCollectionSheet(
       BuildContext context, List<FanModel> fanModel, int index) {
     showModalBottomSheet(
@@ -638,8 +481,8 @@ class _MainScreenState extends State<MainScreen> {
                         ],
                       ),
                     ),
-                    const Divider(
-                      color: Color(0xFF59ADFD),
+                    Divider(
+                      color: Colors.white.withOpacity(0.5),
                     ),
                     SizedBox(height: 16.h),
                     Expanded(
@@ -774,15 +617,17 @@ class _MainScreenState extends State<MainScreen> {
     bool selected,
     VoidCallback onTap,
   ) {
-    return GestureDetector(
-      onTap: onTap,
+    return AppButton(
+      onPressed: onTap,
       child: Container(
         alignment: Alignment.center,
         margin: EdgeInsets.symmetric(horizontal: 4.w),
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        padding: EdgeInsets.symmetric(horizontal: 12.w),
         decoration: BoxDecoration(
-          color: AppColors.red,
+          color: !selected ? AppColors.red : Colors.transparent,
           borderRadius: BorderRadius.circular(10.r),
+          border:
+              Border.all(color: selected ? AppColors.red : Colors.transparent),
         ),
         child: Text(
           text,
@@ -905,50 +750,70 @@ class _MainScreenState extends State<MainScreen> {
     return await showCupertinoDialog<bool>(
           context: context,
           builder: (BuildContext context) {
-            return CupertinoAlertDialog(
-              title: Text(
-                'Delete event',
-                style: TextStyle(
-                  fontSize: 17.sp,
-                  fontWeight: FontWeight.w600,
+            return CupertinoTheme(
+              data: CupertinoThemeData(
+                brightness: Brightness.dark,
+                primaryColor: const Color(0xFF0A84FF),
+                textTheme: CupertinoTextThemeData(
+                  actionTextStyle: TextStyle(
+                    fontSize: 17.sp,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFF0A84FF),
+                  ),
+                  textStyle: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-              content: Text(
-                'Are you sure you want to delete the added event?',
-                style: TextStyle(
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w400,
+              child: CupertinoAlertDialog(
+                title: Text(
+                  'Delete event',
+                  style: TextStyle(
+                    fontSize: 17.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
+                content: Text(
+                  'Are you sure you want to delete the added event?',
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white70,
+                  ),
+                ),
+                actions: <Widget>[
+                  CupertinoDialogAction(
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(
+                        fontSize: 17.sp,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFF0A84FF),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                  ),
+                  CupertinoDialogAction(
+                    child: Text(
+                      'Delete',
+                      style: TextStyle(
+                        fontSize: 17.sp,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF0A84FF),
+                      ),
+                    ),
+                    onPressed: () {
+                      context.read<FanBloc>().add(DeleteFan(fanId));
+                      Navigator.of(context).pop(true);
+                    },
+                  ),
+                ],
               ),
-              actions: <Widget>[
-                CupertinoDialogAction(
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(
-                      fontSize: 17.sp,
-                      fontWeight: FontWeight.w400,
-                      color: const Color(0xFF0A84FF),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop(false);
-                  },
-                ),
-                CupertinoDialogAction(
-                  child: Text(
-                    'Delete',
-                    style: TextStyle(
-                      fontSize: 17.sp,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0A84FF),
-                    ),
-                  ),
-                  onPressed: () {
-                    context.read<FanBloc>().add(DeleteFan(fanId));
-                    Navigator.of(context).pop(true);
-                  },
-                ),
-              ],
             );
           },
         ) ??

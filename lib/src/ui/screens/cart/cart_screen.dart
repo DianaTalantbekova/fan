@@ -1,10 +1,13 @@
 import 'dart:io';
 
+import 'package:fan/src/data/fan_repository.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get_it/get_it.dart';
+import 'package:hive/hive.dart';
 
 import '../../../../gen/assets.gen.dart';
 import '../../../domain/models/fan_model.dart';
@@ -77,11 +80,11 @@ class _CartScreenState extends State<CartScreen> {
                 builder: (context, state) {
                   if (state is FanLoaded) {
                     List<FanModel> fanItems =
-                        state.fans.where((fan) => fan.isCart ?? false).toList();
+                        state.fans.where((fan) => fan.isCart == true).toList();
 
                     if (expensive) {
                       fanItems.sort(
-                              (a, b) => b.price?.compareTo(a.price ?? 0) ?? 0);
+                          (a, b) => b.price?.compareTo(a.price ?? 0) ?? 0);
                     } else if (recents) {
                       fanItems
                           .sort((a, b) => b.addedDate!.compareTo(a.addedDate!));
@@ -107,7 +110,7 @@ class _CartScreenState extends State<CartScreen> {
                               crossAxisCount: 2,
                               mainAxisSpacing: 8.h,
                               crossAxisSpacing: 10.w,
-                              childAspectRatio: 167.w / 254.h,
+                              childAspectRatio: 167.w / 262.h,
                             ),
                             itemBuilder: (BuildContext context, int index) {
                               FanModel fan = fanItems[index];
@@ -213,8 +216,12 @@ class _CartScreenState extends State<CartScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        shape: const CircleBorder(
+            side: BorderSide(
+          color: AppColors.red,
+        )),
+        backgroundColor: AppColors.red,
         heroTag: 'btn2',
-        backgroundColor: Colors.black,
         onPressed: () {
           final state = context.read<FanBloc>().state;
 
@@ -253,15 +260,17 @@ class _CartScreenState extends State<CartScreen> {
     bool selected,
     VoidCallback onTap,
   ) {
-    return GestureDetector(
-      onTap: onTap,
+    return AppButton(
+      onPressed: onTap,
       child: Container(
         alignment: Alignment.center,
         margin: EdgeInsets.symmetric(horizontal: 4.w),
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        padding: EdgeInsets.symmetric(horizontal: 12.w),
         decoration: BoxDecoration(
-          color: AppColors.red,
+          color: !selected ? AppColors.red : Colors.transparent,
           borderRadius: BorderRadius.circular(10.r),
+          border:
+              Border.all(color: selected ? AppColors.red : Colors.transparent),
         ),
         child: Text(
           text,

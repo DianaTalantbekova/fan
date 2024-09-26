@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CustomTextField extends StatefulWidget {
-  const CustomTextField({super.key, required this.hintText, this.controller});
+  const CustomTextField({super.key, required this.hintText, this.controller, this.keyboardType});
 
   final String hintText;
   final TextEditingController? controller;
+  final TextInputType? keyboardType;
 
   @override
   _CustomTextFieldState createState() => _CustomTextFieldState();
@@ -48,6 +49,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
               controller: widget.controller,
               maxLength: 32,
               cursorColor: Colors.white,
+              keyboardType: widget.keyboardType,
               style: TextStyle(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w600,

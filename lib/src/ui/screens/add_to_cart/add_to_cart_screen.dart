@@ -79,6 +79,7 @@ class _AddToCartScreenState extends State<AddToCartScreen> {
               CustomTextField(
                 hintText: 'Enter the price',
                 controller: _priceController,
+                keyboardType: TextInputType.number,
               ),
               SizedBox(height: 120.h),
             ],
@@ -88,31 +89,37 @@ class _AddToCartScreenState extends State<AddToCartScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: AppButton(
         onPressed: () {
-          final price = double.tryParse(_priceController.text);
-          var updateFanModel = FanModel(
-            id: widget.fanModel.id,
-            name: widget.fanModel.name,
-            description: widget.fanModel.description,
-            isFavorite: widget.fanModel.isFavorite,
-            image: widget.fanModel.image,
-            isCart: true,
-            keyCollection: widget.fanModel.keyCollection,
-            price: price,
-            audioFile: widget.fanModel.audioFile,
-            isCollection: widget.fanModel.isCollection,
-            addedDate: widget.fanModel.addedDate,
-          );
+          if(_priceController.text.isNotEmpty){
+            final price = double.tryParse(_priceController.text);
+            var updateFanModel = FanModel(
+              id: widget.fanModel.id,
+              name: widget.fanModel.name,
+              description: widget.fanModel.description,
+              isFavorite: widget.fanModel.isFavorite,
+              image: widget.fanModel.image,
+              isCart: true,
+              keyCollection: widget.fanModel.keyCollection,
+              price: price,
+              audioFile: widget.fanModel.audioFile,
+              isCollection: widget.fanModel.isCollection,
+              addedDate: widget.fanModel.addedDate,
+            );
 
-          context.read<FanBloc>().add(AddFan(updateFanModel));
-          print(price);
-          Navigator.pop(context);
+            widget.fanModel.isCart == true;
+            context.read<FanBloc>().add(AddFan(updateFanModel));
+            print(price);
+            Navigator.pop(context);
+          }else{
+            null;
+          }
+
         },
         child: Container(
           alignment: Alignment.center,
           height: 52.h,
           margin: EdgeInsets.symmetric(horizontal: 16.w),
           decoration: BoxDecoration(
-            color: AppColors.red,
+            color:_priceController.text.isNotEmpty ?AppColors.green48484A :  AppColors.red,
             borderRadius: BorderRadius.circular(10.r),
           ),
           child: Text(

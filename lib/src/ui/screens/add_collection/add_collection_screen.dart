@@ -44,6 +44,14 @@ class _AddCollectionScreenState extends State<AddCollectionScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _nameController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,

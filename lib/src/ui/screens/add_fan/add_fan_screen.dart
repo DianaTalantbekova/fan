@@ -89,6 +89,17 @@ class _AddFanScreenState extends State<AddFanScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _nameController.addListener(() {
+      setState(() {});
+    });
+    _descriptionController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
   void dispose() {
     _audioPlayer.dispose();
     _nameController.dispose();
@@ -99,10 +110,10 @@ class _AddFanScreenState extends State<AddFanScreen> {
   bool get isFilled =>
       _nameController.text.isNotEmpty &&
       _image != null &&
-      _descriptionController.text.isNotEmpty;
+      _descriptionController.text.isNotEmpty
 
-  // &&
-  // _audioFile != null;
+  &&
+  _audioFile != null;
 
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -200,6 +211,7 @@ class _AddFanScreenState extends State<AddFanScreen> {
                     ),
                     child: Row(
                       children: [
+                        SizedBox(width: 10.w),
                         SvgPicture.asset(
                           Assets.svg.download,
                           fit: BoxFit.contain,
@@ -218,14 +230,22 @@ class _AddFanScreenState extends State<AddFanScreen> {
                         ),
                         SizedBox(width: 10.w),
                         Expanded(
-                          child: Assets.png.soundLines.image(
-                            fit: BoxFit.contain,
-                            height: 20.h,
-                          ),
+                          child: _audioFile == null
+                              ? const Text(
+                                  '• • • • • • • • • • • • • • • • • • • • •',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Assets.png.soundLines.image(
+                                  fit: BoxFit.contain,
+                                  height: 20.h,
+                                ),
                         ),
                         GestureDetector(
                           onTap: () {
-                            _showSoundDeleteDialog(context);
+                            if (_isAudioAdded) _showSoundDeleteDialog(context);
                           },
                           child: SvgPicture.asset(
                             Assets.svg.trash,
@@ -265,7 +285,8 @@ class _AddFanScreenState extends State<AddFanScreen> {
                 audioFile: _audioFile?.path,
                 isCollection: false,
                 isFavorite: false,
-                id: fanId, addedDate: DateTime.now(),
+                id: fanId,
+                addedDate: DateTime.now(),
               );
               context.read<FanBloc>().add(AddFan(addFan));
 

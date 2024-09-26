@@ -1,9 +1,11 @@
 import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
 import 'package:fan/src/data/collection_repository.dart';
 import 'package:fan/src/domain/models/collection_model.dart';
 import 'package:meta/meta.dart';
 
 part 'collection_event.dart';
+
 part 'collection_state.dart';
 
 class CollectionBloc extends Bloc<CollectionEvent, CollectionState> {
@@ -32,10 +34,12 @@ class CollectionBloc extends Bloc<CollectionEvent, CollectionState> {
     on<DeleteSelectedCollections>((event, emit) async {
       try {
         for (var item in event.items) {
-          await collectionRepository.deleteCollection(item.id);
+          collectionRepository. deleteCollection(item.id);
         }
+        print('object');
         emit(CollectionLoaded(await collectionRepository.getAllCollections()));
-      } catch (e) {
+      } catch (e,s) {
+        print(s);
         emit(CollectionError(e.toString()));
       }
     });

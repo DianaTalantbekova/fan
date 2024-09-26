@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get_it/get_it.dart';
+import 'package:hive/hive.dart';
 
 import '../../../../gen/assets.gen.dart';
 import '../../../domain/models/collection_model.dart';
@@ -50,17 +52,20 @@ class _CollectionScreenState extends State<CollectionScreen> {
     final bool confirmed =
         await _showDeleteConfirmationDialog(context, selectedItems);
     if (confirmed) {
+      Box<CollectionModel> collectionBox =
+          GetIt.instance<Box<CollectionModel>>();
+      for (var action in selectedItems) {
+        collectionBox.delete(action.id);
+      }
       context
           .read<CollectionBloc>()
           .add(DeleteSelectedCollections(selectedItems));
-      print("LALALAL: ${selectedItems.map((item) => item.id).toList()}");
 
       setState(() {
         selectedItems.clear();
         isSelecting = false;
       });
-    } else {
-    }
+    } else {}
   }
 
   @override
@@ -130,7 +135,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                         crossAxisCount: 2,
                         mainAxisSpacing: 8.h,
                         crossAxisSpacing: 10.w,
-                        childAspectRatio: 166.w / 220.h,
+                        childAspectRatio: 166.w / 228.h,
                       ),
                       itemBuilder: (BuildContext context, int index) {
                         if (index == 0) {
@@ -266,20 +271,20 @@ class _CollectionScreenState extends State<CollectionScreen> {
           ],
         ),
       ),
-      floatingActionButtonLocation: isSelecting ? FloatingActionButtonLocation.centerFloat:null,
+      floatingActionButtonLocation:
+          isSelecting ? FloatingActionButtonLocation.centerFloat : null,
       floatingActionButton: isSelecting
           ? AppButton(
               onPressed: () {
                 setState(() {
                   _deleteSelectedItems(context);
                 });
-
               },
               child: Container(
                 margin: EdgeInsets.symmetric(horizontal: 16.w),
                 alignment: Alignment.center,
                 height: 52.h,
-                decoration:  BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.red,
                   borderRadius: BorderRadius.circular(10.r),
                 ),
@@ -290,8 +295,12 @@ class _CollectionScreenState extends State<CollectionScreen> {
               ),
             )
           : FloatingActionButton(
-        heroTag: 'btn3',
-              backgroundColor: Colors.black,
+              shape: const CircleBorder(
+                  side: BorderSide(
+                color: AppColors.red,
+              )),
+              backgroundColor: AppColors.red,
+              heroTag: 'btn3',
               onPressed: () {
                 Navigator.push(
                   context,
@@ -323,15 +332,17 @@ class _CollectionScreenState extends State<CollectionScreen> {
     bool selected,
     VoidCallback onTap,
   ) {
-    return GestureDetector(
-      onTap: onTap,
+    return AppButton(
+      onPressed: onTap,
       child: Container(
         alignment: Alignment.center,
         margin: EdgeInsets.symmetric(horizontal: 4.w),
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        padding: EdgeInsets.symmetric(horizontal: 12.w),
         decoration: BoxDecoration(
-          color: AppColors.red,
+          color: !selected ? AppColors.red : Colors.transparent,
           borderRadius: BorderRadius.circular(10.r),
+          border:
+              Border.all(color: selected ? AppColors.red : Colors.transparent),
         ),
         child: Text(
           text,
@@ -461,49 +472,69 @@ class _CollectionScreenState extends State<CollectionScreen> {
     return await showCupertinoDialog<bool>(
           context: context,
           builder: (BuildContext context) {
-            return CupertinoAlertDialog(
-              title: Text(
-                'Delete collection',
-                style: TextStyle(
-                  fontSize: 17.sp,
-                  fontWeight: FontWeight.w600,
+            return CupertinoTheme(
+              data: CupertinoThemeData(
+                brightness: Brightness.dark,
+                primaryColor: const Color(0xFF0A84FF),
+                textTheme: CupertinoTextThemeData(
+                  actionTextStyle: TextStyle(
+                    fontSize: 17.sp,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFF0A84FF),
+                  ),
+                  textStyle: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-              content: Text(
-                'Are you sure you want to delete this collections?',
-                style: TextStyle(
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w400,
+              child: CupertinoAlertDialog(
+                title: Text(
+                  'Delete collection',
+                  style: TextStyle(
+                    fontSize: 17.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
+                content: Text(
+                  'Are you sure you want to delete these collections?',
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white70,
+                  ),
+                ),
+                actions: <Widget>[
+                  CupertinoDialogAction(
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(
+                        fontSize: 17.sp,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFF0A84FF),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                  ),
+                  CupertinoDialogAction(
+                    child: Text(
+                      'Delete',
+                      style: TextStyle(
+                        fontSize: 17.sp,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF0A84FF),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                    },
+                  ),
+                ],
               ),
-              actions: <Widget>[
-                CupertinoDialogAction(
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(
-                      fontSize: 17.sp,
-                      fontWeight: FontWeight.w400,
-                      color: const Color(0xFF0A84FF),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop(false);
-                  },
-                ),
-                CupertinoDialogAction(
-                  child: Text(
-                    'Delete',
-                    style: TextStyle(
-                      fontSize: 17.sp,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0A84FF),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop(true);
-                  },
-                ),
-              ],
             );
           },
         ) ??
